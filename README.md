@@ -45,7 +45,7 @@ middleware.ts               legacy 301/410 → снятие слеша → вы�
 ## Telegram без внешнего сервера
 
 1. Триггеры в Supabase (`0001_init.sql`) кладут события в `notification_outbox`.
-2. `GET /api/cron/notifications` (Vercel Cron, раз в минуту, `Authorization: Bearer $CRON_SECRET`) вызывает `claim_notifications` → `sendMessage` → `complete_notification`. Повторы с экспоненциальной паузой и статус `dead` после `max_attempts` делает сама база. На 429 от Telegram остаток пачки откладывается.
+2. `GET /api/cron/notifications` (Vercel Cron: сейчас раз в сутки под Hobby, на Pro поставить `* * * * *` в vercel.json; `Authorization: Bearer $CRON_SECRET`) вызывает `claim_notifications` → `sendMessage` → `complete_notification`. Повторы с экспоненциальной паузой и статус `dead` после `max_attempts` делает сама база. На 429 от Telegram остаток пачки откладывается.
 3. Чтобы не ждать cron, server action формы после вставки заявки вызывает `flushOutboxAfterResponse()` — отправка идёт через `after()` сразу после ответа пользователю.
 4. `POST /api/telegram` — webhook. Проверяет `X-Telegram-Bot-Api-Secret-Token`. Команды `/start` и `/id` возвращают chat_id/user_id для настройки. Кнопка «Взять в работу» под заявкой скаутинга атомарно ставит `assigned_to` (только если заявка свободна) с теми же правилами офисов, что в RLS, и меняет кнопку на «✓ В работе: имя».
 5. После деплоя: `npm run telegram:webhook` с `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `NEXT_PUBLIC_SITE_URL`.
