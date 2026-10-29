@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { isLocale, localeRegions, locales } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { alternates } from "@/lib/i18n/paths";
+import { siteUrl } from "@/lib/site-url";
 import "../globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -36,7 +37,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   if (!isLocale(locale)) return {};
   const t = await getDictionary(locale);
   return {
-    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://status-models.com"),
+    metadataBase: new URL(siteUrl()),
     title: { default: t.meta.title, template: "%s — STATUS INTERNATIONAL" },
     description: t.meta.description,
     alternates: alternates(locale),

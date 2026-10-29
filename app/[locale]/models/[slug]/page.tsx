@@ -10,6 +10,7 @@ import { coverOf, getModelProfile, getPublishedModelSlugs } from "@/lib/data/mod
 import { isLocale } from "@/lib/i18n/config";
 import { getModelDictionary } from "@/lib/i18n/model";
 import { alternates, href } from "@/lib/i18n/paths";
+import { siteUrl } from "@/lib/site-url";
 
 type Params = Promise<{ locale: string; slug: string }>;
 
@@ -51,7 +52,7 @@ export default async function ModelPage({ params }: { params: Params }) {
   const cover = coverOf(model);
   const rows = measurementRows(model.measurements, t);
   const [first, ...rest] = model.name.split(" ");
-  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://status-models.com";
+  const site = siteUrl();
 
   const jsonLd = {
     "@context": "https://schema.org",

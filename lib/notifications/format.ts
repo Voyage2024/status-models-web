@@ -1,4 +1,5 @@
 import "server-only";
+import { siteUrl } from "@/lib/site-url";
 import { escapeHtml as e, type InlineKeyboard } from "@/lib/telegram/api";
 
 export type OutboxRow = {
@@ -11,7 +12,6 @@ export type OutboxRow = {
   attempts: number;
 };
 
-const siteUrl = () => process.env.NEXT_PUBLIC_SITE_URL ?? "https://status-models.com";
 
 // Префикс callback_data; разбирается в app/api/telegram/route.ts. Лимит Telegram 64 байта.
 export const TAKE_SCOUTING = "take:";

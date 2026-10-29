@@ -3,6 +3,7 @@ import { compCardHash, renderCompCard } from "@/lib/comp-card/render";
 import { getModelProfile } from "@/lib/data/model";
 import { isLocale } from "@/lib/i18n/config";
 import { getModelDictionary } from "@/lib/i18n/model";
+import { siteUrl } from "@/lib/site-url";
 
 // react-pdf и node:crypto нужны Node.js, не Edge.
 export const runtime = "nodejs";
@@ -33,7 +34,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ locale: 
     locale,
     t,
     origin,
-    siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? origin,
+    siteUrl: process.env.NEXT_PUBLIC_SITE_URL?.trim() ? siteUrl() : origin,
   });
   return new Response(new Uint8Array(pdf), { headers });
 }
