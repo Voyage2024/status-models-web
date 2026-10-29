@@ -1,0 +1,30 @@
+{
+  "name": "status-international-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "telegram:webhook": "node scripts/set-telegram-webhook.mjs"
+  },
+  "dependencies": {
+    "@react-pdf/renderer": "4.3.1",
+    "@supabase/supabase-js": "2.118.0",
+    "next": "15.5.28",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "server-only": "0.0.1",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "22.15.0",
+    "@types/react": "19.1.2",
+    "@types/react-dom": "19.1.2",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.8.3"
+  }
+}

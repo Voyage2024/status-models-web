@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+/* Editorial Dark Luxury: глубокий чёрный, графит, шампань как единственный акцент. */
+@theme {
+  --color-ink: #0a0a0a;
+  --color-graphite: #131313;
+  --color-graphite-2: #1b1b1b;
+  --color-line: rgb(255 255 255 / 0.1);
+  --color-bone: #ece8e1;
+  --color-mist: #8d8a85;
+  --color-champagne: #c8a96a;
+
+  --font-display: var(--font-cormorant), "Times New Roman", serif;
+  --font-sans: var(--font-manrope), system-ui, sans-serif;
+
+  --tracking-luxe: 0.32em;
+  --ease-luxe: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    background: var(--color-ink);
+    color: var(--color-bone);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-ink);
+  }
+  ::selection {
+    background: var(--color-champagne);
+    color: var(--color-ink);
+  }
+  :focus-visible {
+    outline: 1px solid var(--color-champagne);
+    outline-offset: 4px;
+  }
+}
+
+@utility eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-luxe);
+  text-transform: uppercase;
+}
+
+@utility display {
+  font-family: var(--font-display);
+  font-weight: 300;
+  line-height: 0.88;
+  letter-spacing: -0.01em;
+}
+
+@utility container-luxe {
+  width: 100%;
+  margin-inline: auto;
+  max-width: 1680px;
+  padding-inline: clamp(1.25rem, 4vw, 4rem);
+}
+
+/* Лёгкое зерно поверх фото и плейсхолдеров, чтобы чёрный не выглядел «цифровым». */
+@utility grain {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.07;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
