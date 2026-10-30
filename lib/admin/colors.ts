@@ -12,5 +12,4 @@ export function colorOptions(locale: Locale) {
       value,
       label: locale === "ru" && local[key] ? `${local[key]} · ${value}` : value,
     }));
-  return { hair: build(en.hairColors, ru.hairColors), eyes: build(en.eyeColors, ru.eyeColors) };
-}
+  return { hair: build(en.hair, ru.hair), eyes: build(en.eyes, ru.eyes) };
