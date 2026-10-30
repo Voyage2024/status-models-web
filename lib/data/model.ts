@@ -191,3 +191,77 @@ export function compCardPhotos(p: ModelProfile, count = 4): ModelMedia[] {
   const marked = rest.filter((x) => x.inCompCard);
   return (marked.length ? marked : rest).slice(0, count);
 }
+
+/**
+ * Борд /models: все опубликованные модели по алфавиту, как на старом сайте.
+ * Обложка — фото kind = cover, иначе первое по sort_order.
+ */
+export async function getBoard(locale: Locale): Promise<TalentCard[]> {
+  if (!hasSupabase()) return fallbackBoard();
+
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from("models")
+    .select(
+      "id, slug, first_name, last_name, category, is_new_face, " +
+        "model_translations(locale, display_name, is_reviewed), " +
+        "model_media(bucket, storage_path, alt, width, height, sort_order, kind)",
+    )
+    .eq("status", "published");
+
+  if (error) {
+    console.error("getBoard", error.message);
+    return fallbackBoard();
+  }
+  type BoardRow = Pick<Row, "id" | "slug" | "first_name" | "last_name" | "category" | "is_new_face" | "model_translations" | "model_media">;
+  const rows = (data ?? []) as unknown as BoardRow[];
+  if (!rows.length) return [];
+
+  const { data: heights } = await supabase
+    .from("model_current_measurements")
+    .select("model_id, height_cm")
+    .in("model_id", rows.map((r) => r.id));
+  const heightById = new Map((heights ?? []).map((h) => [h.model_id as string, num(h.height_cm)]));
+
+  return rows
+    .map((r) => {
+      const tr =
+        r.model_translations?.find((t) => t.locale === locale && t.is_reviewed) ??
+        r.model_translations?.find((t) => t.locale === "en");
+      const name = tr?.display_name ?? [r.first_name, r.last_name].filter(Boolean).join(" ");
+      const photos = (r.model_media ?? []).filter((x) => x.kind !== "video");
+      const media =
+        photos.filter((x) => x.kind === "cover").sort((a, b) => a.sort_order - b.sort_order)[0] ??
+        [...photos].sort((a, b) => a.sort_order - b.sort_order)[0];
+      return {
+        slug: r.slug,
+        name,
+        category: r.category,
+        isNewFace: r.is_new_face,
+        heightCm: heightById.get(r.id) ?? null,
+        cover: media
+          ? {
+              src: supabase.storage.from(media.bucket).getPublicUrl(media.storage_path).data.publicUrl,
+              alt: media.alt ?? name,
+              width: media.width,
+              height: media.height,
+            }
+          : null,
+      };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, locale));
+}
+
+function fallbackBoard(): TalentCard[] {
+  return fallbackSlugs
+    .map((slug) => fallbackProfile(slug)!)
+    .map((p) => ({
+      slug: p.slug,
+      name: p.name,
+      category: p.category,
+      isNewFace: p.isNewFace,
+      heightCm: p.measurements?.heightCm ?? null,
+      cover: coverOf(p),
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name, "en"));
+}

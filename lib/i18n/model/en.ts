@@ -21,6 +21,14 @@ const en = {
   noPhotos: "Portfolio is being updated.",
   metaDescription: (name: string, params: string) =>
     `${name} — model represented by STATUS INTERNATIONAL mother agency.${params ? ` ${params}.` : ""} Portfolio and comp card.`,
+  board: {
+    title: "The Board",
+    lead: "Women and new faces in development and on placement with partner agencies.",
+    all: "All",
+    count: (n: number) => `${n} ${n === 1 ? "model" : "models"}`,
+    empty: "The board is being updated.",
+    metaDescription: "The STATUS INTERNATIONAL board: models and new faces of the mother agency with measurements, portfolios and comp cards.",
+  },
   categories: { women: "Women", men: "Men", new_faces: "New faces", other: "Talent" },
 };
 

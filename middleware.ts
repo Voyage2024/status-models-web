@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { defaultLocale, isLocale, LOCALE_COOKIE, type Locale } from "@/lib/i18n/config";
 import { legacyGone, legacyRedirects } from "@/lib/seo/legacy-redirects";
+import { refreshStaffSession } from "@/lib/supabase/middleware";
 
 function preferredLocale(req: NextRequest): Locale {
   const cookie = req.cookies.get(LOCALE_COOKIE)?.value;
@@ -28,7 +29,7 @@ function legacyKey(pathname: string): string {
   return path.endsWith("/") ? path : `${path}/`;
 }
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
 
   // 1. Старые URL WordPress: 301 на новые адреса, 410 для мусора (карта из аудита URL).
@@ -43,9 +44,10 @@ export function middleware(req: NextRequest) {
   }
 
   // 3. Путь уже с языком: пропускаем, запоминая язык для следующего визита на корень.
-  const first = pathname.split("/")[1];
+  // В админке заодно продлеваем сессию Supabase Auth.
+  const [, first, second] = pathname.split("/");
   if (isLocale(first)) {
-    const res = NextResponse.next();
+    const res = second === "admin" ? await refreshStaffSession(req) : NextResponse.next();
     if (req.cookies.get(LOCALE_COOKIE)?.value !== first) {
       res.cookies.set(LOCALE_COOKIE, first, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" });
     }
