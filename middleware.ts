@@ -48,7 +48,10 @@ export async function middleware(req: NextRequest) {
   const [, first, second] = pathname.split("/");
   if (isLocale(first)) {
     const res = second === "admin" ? await refreshStaffSession(req) : NextResponse.next();
-    if (req.cookies.get(LOCALE_COOKIE)?.value !== first) {
+    // Prefetch ссылок переключателя (/ru, /es, /pt) идёт через middleware: без этой проверки
+    // язык в cookie перезаписывал бы тот prefetch, что ответил последним, а не выбор посетителя.
+    const prefetch = req.headers.has("next-router-prefetch") || req.headers.get("purpose") === "prefetch";
+    if (!prefetch && req.cookies.get(LOCALE_COOKIE)?.value !== first) {
       res.cookies.set(LOCALE_COOKIE, first, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" });
     }
     return res;
