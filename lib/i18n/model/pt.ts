@@ -26,10 +26,18 @@ const pt: ModelDictionary = {
   board: {
     title: "The Board",
     lead: "Modelos e new faces em desenvolvimento e colocadas em agências parceiras.",
-    all: "Todas",
+    all: "Todos",
     count: (n) => `${n} ${n === 1 ? "modelo" : "modelos"}`,
     empty: "O board está sendo atualizado.",
     metaDescription: "O board da STATUS INTERNATIONAL: modelos e new faces da agência mãe com medidas, portfólio e comp card.",
+  },
+  hairColors: {
+    black: "Preto", "dark brown": "Castanho escuro", brown: "Castanho", "light brown": "Castanho claro", auburn: "Acaju", red: "Ruivo",
+    "dark blonde": "Loiro escuro", blonde: "Loiro", "light blonde": "Loiro claro", grey: "Grisalho",
+  },
+  eyeColors: {
+    brown: "Castanhos", "dark brown": "Castanho escuro", hazel: "Mel", green: "Verdes", "grey-green": "Cinza-esverdeados", blue: "Azuis",
+    "grey-blue": "Cinza-azulados", "blue-green": "Azul-esverdeados", grey: "Cinza", black: "Pretos",
   },
   categories: { women: "Mulheres", men: "Homens", new_faces: "New faces", other: "Talentos" },
 };

@@ -31,6 +31,14 @@ const ru: ModelDictionary = {
     empty: "Борд обновляется.",
     metaDescription: "Борд STATUS INTERNATIONAL: модели и новые лица материнского агентства с параметрами, портфолио и Comp Card.",
   },
+  hairColors: {
+    black: "Чёрные", "dark brown": "Тёмно-каштановые", brown: "Каштановые", "light brown": "Светло-каштановые", auburn: "Медно-каштановые",
+    red: "Рыжие", "dark blonde": "Тёмно-русые", blonde: "Блонд", "light blonde": "Светлый блонд", grey: "Седые",
+  },
+  eyeColors: {
+    brown: "Карие", "dark brown": "Тёмно-карие", hazel: "Ореховые", green: "Зелёные", "grey-green": "Серо-зелёные", blue: "Голубые",
+    "grey-blue": "Серо-голубые", "blue-green": "Сине-зелёные", grey: "Серые", black: "Чёрные",
+  },
   categories: { women: "Женщины", men: "Мужчины", new_faces: "Новые лица", other: "Таланты" },
 };
 

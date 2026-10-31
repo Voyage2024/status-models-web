@@ -10,6 +10,12 @@ function feet(v: number) {
   return `${Math.floor(total / 12)}'${total % 12}"`;
 }
 
+/** «Dark Brown», «gray-blue», «Grey - blue» → ключ словаря; неизвестный цвет показываем как есть. */
+function color(raw: string, map: Record<string, string>): string {
+  const key = raw.trim().toLowerCase().replace(/\s*-\s*/g, "-").replace(/\bgray\b/g, "grey");
+  return map[key] ?? raw;
+}
+
 export type MeasurementRow = { key: string; label: string; metric: string; imperial: string | null };
 
 /** Строки параметров в порядке comp card; пустые поля пропускаются. */
@@ -21,8 +27,8 @@ export function measurementRows(m: ModelMeasurements | null, t: ModelDictionary)
     m.waistCm != null ? { key: "waist", label: t.waist, metric: cm(m.waistCm), imperial: String(inches(m.waistCm)) } : null,
     m.hipsCm != null ? { key: "hips", label: t.hips, metric: cm(m.hipsCm), imperial: String(inches(m.hipsCm)) } : null,
     m.shoeEu != null ? { key: "shoes", label: t.shoes, metric: `${cm(m.shoeEu)} EU`, imperial: null } : null,
-    m.hairColor ? { key: "hair", label: t.hair, metric: m.hairColor, imperial: null } : null,
-    m.eyeColor ? { key: "eyes", label: t.eyes, metric: m.eyeColor, imperial: null } : null,
+    m.hairColor ? { key: "hair", label: t.hair, metric: color(m.hairColor, t.hairColors), imperial: null } : null,
+    m.eyeColor ? { key: "eyes", label: t.eyes, metric: color(m.eyeColor, t.eyeColors), imperial: null } : null,
   ];
   return rows.filter((r): r is MeasurementRow => r !== null);
 }

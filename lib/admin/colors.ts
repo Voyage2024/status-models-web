@@ -1,5 +1,11 @@
 import type { Locale } from "@/lib/i18n/config";
 
+/**
+ * Варианты цвета волос/глаз для формы параметров. В базу пишется английское название
+ * (как в сиде: «Light brown»), сайт переводит его словарями hairColors/eyeColors из lib/i18n/model
+ * по ключу в нижнем регистре. Список здесь свой, чтобы админка не зависела от версии словарей сайта;
+ * новый цвет добавляйте и сюда, и в lib/i18n/model/*.ts.
+ */
 type Color = { en: string; ru: string };
 
 const HAIR_COLORS: readonly Color[] = [
@@ -12,7 +18,7 @@ const HAIR_COLORS: readonly Color[] = [
   { en: "Dark blonde", ru: "Тёмно-русые" },
   { en: "Blonde", ru: "Блонд" },
   { en: "Light blonde", ru: "Светлый блонд" },
-  { en: "Grey", ru: "Серые" },
+  { en: "Grey", ru: "Седые" },
 ];
 
 const EYE_COLORS: readonly Color[] = [

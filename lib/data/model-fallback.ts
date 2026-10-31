@@ -1,3 +1,4 @@
+import type { Locale } from "@/lib/i18n/config";
 import type { ModelProfile } from "./model";
 import { fallbackTalent } from "./fallback";
 
@@ -6,10 +7,20 @@ import { fallbackTalent } from "./fallback";
 const legacy: Record<string, ModelProfile["measurements"]> = {
   "kira-raab": m(165, 72, 60, 82, "Dark brown", "Grey-blue"),
   "celine-farah": m(162, 80, 62, 90, "Dark brown", "Brown"),
-  "marina-gerasimova": m(167, 82, 58, 92, "Long red", "Blue"),
+  "marina-gerasimova": m(167, 82, 58, 92, "Red", "Blue"),
   "kashish-kushal": m(150, 84, 60, 90, "Dark brown", "Brown"),
   "anastasiia-prokhorova": m(164, 82, 60, 88, "Light brown", "Brown"),
   "ekaterina-tronova": m(173, 95, 63, 95, "Light brown", "Grey"),
+};
+
+// Как model_translations в db/0003_seed_models.sql: ru кириллицей, es/pt как en.
+const namesRu: Record<string, string> = {
+  "anastasiia-prokhorova": "Анастасия Прохорова",
+  "celine-farah": "Селина Фарах",
+  "ekaterina-tronova": "Екатерина Тронова",
+  "kashish-kushal": "Кашиш Кушал",
+  "kira-raab": "Кира Рааб",
+  "marina-gerasimova": "Марина Герасимова",
 };
 
 function m(heightCm: number, bustCm: number, waistCm: number, hipsCm: number, hairColor: string, eyeColor: string) {
@@ -25,7 +36,7 @@ const demoPortfolio: Array<[number, number, number]> = [
   [6, 800, 1200],
 ];
 
-export function fallbackProfile(slug: string): ModelProfile | null {
+export function fallbackProfile(slug: string, locale: Locale = "en"): ModelProfile | null {
   const t = fallbackTalent.find((x) => x.slug === slug);
   if (!t) return null;
   const media: ModelProfile["media"] = t.cover
@@ -40,7 +51,7 @@ export function fallbackProfile(slug: string): ModelProfile | null {
   return {
     id: slug,
     slug,
-    name: t.name,
+    name: (locale === "ru" && namesRu[slug]) || t.name,
     category: t.category,
     isNewFace: t.isNewFace,
     instagram: null,

@@ -22,7 +22,8 @@ app/
     models/ models/[slug]   каталог и карточка модели (slug общий для всех языков)
     offices/ offices/[city] рынки (paris, milan, new-york, dubai, tokyo, sydney)
     become-a-model/         форма скаутинга (?source=scout для скаутов-партнёров)
-    agency/ contact/ privacy/ admin/   заглушки
+    admin/                  админка: вход, список моделей, карточка модели (Supabase Auth + роли)
+    agency/ contact/ privacy/   заглушки
   api/
     telegram/route.ts       webhook бота
     cron/notifications/     воркер notification_outbox (Vercel Cron)
@@ -71,3 +72,33 @@ middleware.ts               legacy 301/410 → снятие слеша → вы�
 - Без Supabase страницы работают на параметрах со старых страниц WordPress (`lib/data/model-fallback.ts`).
 - `GET /{locale}/models/{slug}/comp-card` собирает PDF A5 из двух страниц на `@react-pdf/renderer` (лицо: обложка и имя; оборот: 4 фото, параметры, контакты). Фото для оборота: `model_media.in_comp_card`, иначе первые по порядку. Фото идут через `/_next/image`, чтобы ужать их до печатного размера и получить JPEG. Шрифты: статичные TTF в `lib/comp-card/fonts` (OFL), в функцию Vercel их кладёт `outputFileTracingIncludes`.
 - Кэш: ETag по хэшу данных (будущий `comp_cards.data_hash`), CDN Vercel держит PDF час. Следующий шаг: сохранять PDF в bucket `comp-cards` и строку в `comp_cards`, чтобы не пересобирать на каждый промах кэша.
+
+## Борд /models и наполнение базы
+
+- `app/[locale]/models/page.tsx`: все модели со `status = 'published'` по алфавиту, сетка 4 в ряд (3 на планшете, 2 на телефоне), фильтр по категории появляется, когда категорий больше одной. Обложка: `model_media.kind = 'cover'`, иначе первое фото по `sort_order`. Данные: `getBoard()` в `lib/data/model.ts`.
+- Старые URL (`/anastasiia_prokhorova/`, `/models/`, `/ru/модели/` и т. д.) уже отдают один 301 из `middleware.ts` по карте `lib/seo/legacy-redirects.ts`; дублировать их в `next.config.ts` не нужно.
+- `db/0003_seed_models.sql`: 6 моделей борда с параметрами со старого сайта, имена en/ru, `legacy_urls`. Запускать после 0001 и 0002, повторный запуск безопасен.
+- Фото: `node --env-file=.env.local scripts/upload-model-photos.mjs ./photos`, папки `photos/<slug>/NN-kind[-cc].jpg` (kind: cover, portfolio, editorial, campaign, digitals; `-cc` = на оборот Comp Card). Скрипт кладёт файлы в `models-public` и пишет `model_media` с размерами.
+
+## Админка `/[locale]/admin`
+
+Вход по email и паролю Supabase Auth, сессия в cookies (`@supabase/ssr`, продление в `middleware.ts`). Пускает только пользователей со строкой в `staff` (`is_active`). Все запросы идут с JWT сотрудника, права решает RLS из `0001_init.sql`:
+
+| Роль | Что может |
+|------|-----------|
+| Owner | всё: заводить модели, править любые, назначать рынки (офисы) |
+| Booker | править модели, представленные в его офисах (`staff_offices` × `model_representations`) |
+| Scout | только смотреть |
+
+Подключение:
+1. Выполнить `db/0004_admin.sql` (автокод `SI-0007…`, триггер `updated_at`, одна запись замеров на дату).
+2. Supabase → Authentication → Users → Add user (email + пароль, Auto Confirm).
+3. Сделать себя Owner — SQL в конце `0004_admin.sql`.
+4. Открыть `/ru/admin` (страницы рендерятся на запросе, на сборке не пререндерятся).
+
+Что внутри (`app/[locale]/admin/**`, `components/admin/**`, `lib/admin/**`):
+- Список: поиск по имени, slug и коду, фильтры по статусу и категории, отметки переводов (золотой — проверен, белый — есть, но не проверен).
+- Карточка: имя, фамилия, slug (после первой публикации закрепляется, на нём держатся 301), категория, статус, New face, Instagram; переводы en/ru/es/pt (имя на сайте, био, SEO, «проверен»). Пустое имя перевода удаляет локаль, сайт тогда берёт английский.
+- Параметры: рост, грудь, талия, бёдра, обувь, волосы/глаза из словарей `lib/i18n/model` (в базу пишется английское название, как в сиде). Та же дата правит запись, новая — добавляет в историю.
+- Фото: загрузка пачкой (кнопка или drag&drop) прямо в `models-public/<model_id>/<uuid>.<ext>` по signed upload URL, затем строки `model_media` с размерами. Тип (обложка, портфолио…), alt, кредиты, «на сайте», «Comp Card», порядок стрелками, удаление (файл из Storage тоже).
+- После любого сохранения `revalidatePath` обновляет страницу модели, борд и главную сразу, без ожидания ISR. Comp Card PDF кэшируется CDN до часа.

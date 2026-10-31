@@ -27,12 +27,12 @@ const c = { paper: "#f7f4ef", ink: "#0a0a0a", mist: "#7a766f", line: "#d9d4cb", 
 
 const s = StyleSheet.create({
   page: { backgroundColor: c.paper, color: c.ink, fontFamily: "Manrope", fontSize: 7 },
-  eyebrow: { fontFamily: "Manrope", fontWeight: 500, fontSize: 6, letterSpacing: 1.9, textTransform: "uppercase" },
+  eyebrow: { fontFamily: "Manrope", fontWeight: 500, fontSize: 6, letterSpacing: 1.9 },
   frontPhoto: { position: "absolute", top: 0, left: 0, right: 0, bottom: 128, objectFit: "cover" },
   placeholder: { position: "absolute", top: 0, left: 0, right: 0, bottom: 128, backgroundColor: "#151515", alignItems: "center", justifyContent: "center" },
   monogram: { fontFamily: "Cormorant", fontStyle: "italic", fontWeight: 300, fontSize: 120, color: "#2a2a2a" },
   frontBand: { position: "absolute", left: 28, right: 28, bottom: 26, height: 82, justifyContent: "flex-end" },
-  name: { fontFamily: "Cormorant", fontWeight: 300, fontSize: 40, lineHeight: 0.95, textTransform: "uppercase", letterSpacing: 0.5 },
+  name: { fontFamily: "Cormorant", fontWeight: 300, fontSize: 40, lineHeight: 0.95, letterSpacing: 0.5 },
   rule: { height: 0.5, backgroundColor: c.line },
   back: { paddingTop: 26, paddingHorizontal: 28, paddingBottom: 24, flexDirection: "column", height: "100%" },
   grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", flexGrow: 1, flexBasis: 0 },
@@ -41,6 +41,13 @@ const s = StyleSheet.create({
   statValue: { fontFamily: "Cormorant", fontWeight: 300, fontSize: 15, lineHeight: 1.25, marginTop: 3 },
   footer: { flexShrink: 0, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginTop: 8, paddingTop: 12, borderTopWidth: 0.5, borderTopColor: c.line },
 });
+
+// Верхний регистр строкой, а не textTransform: react-pdf меряет ширину по исходному тексту,
+// и с разрядкой «Cabelo» или «Mulheres» переносились по буквам, первая часть терялась.
+const upper = (text: string) => text.toLocaleUpperCase();
+
+/** Длинная фамилия («Герасимова») уменьшает кегль, чтобы не вылезать за плашку шириной ~250pt. */
+const nameSize = (name: string) => Math.min(40, Math.floor(250 / (Math.max(...name.split(" ").map((w) => w.length)) * 0.74)));
 
 export type CompCardPhoto = { data: Buffer; format: "jpg" | "png" };
 
@@ -118,8 +125,8 @@ export function CompCardDocument({ data }: { data: CompCardData }) {
         <View style={s.frontBand}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end" }}>
             <View style={{ maxWidth: "70%" }}>
-              <Text style={[s.eyebrow, { color: c.champagne, marginBottom: 8 }]}>{data.label}</Text>
-              <Text style={s.name}>{data.name}</Text>
+              <Text style={[s.eyebrow, { color: c.champagne, marginBottom: 8 }]}>{upper(data.label)}</Text>
+              <Text style={[s.name, { fontSize: nameSize(data.name) }]}>{upper(data.name)}</Text>
             </View>
             <Wordmark align="right" />
           </View>
@@ -130,8 +137,8 @@ export function CompCardDocument({ data }: { data: CompCardData }) {
       <Page size="A5" style={s.page}>
         <View style={s.back}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 12 }}>
-            <Text style={{ fontFamily: "Cormorant", fontWeight: 300, fontSize: 20, textTransform: "uppercase" }}>{data.name}</Text>
-            <Text style={[s.eyebrow, { color: c.mist }]}>{data.label}</Text>
+            <Text style={{ fontFamily: "Cormorant", fontWeight: 300, fontSize: 20 }}>{upper(data.name)}</Text>
+            <Text style={[s.eyebrow, { color: c.mist }]}>{upper(data.label)}</Text>
           </View>
 
           <BackPhotos photos={data.photos} />
@@ -140,7 +147,7 @@ export function CompCardDocument({ data }: { data: CompCardData }) {
             <View style={s.stats}>
               {data.rows.map((r) => (
                 <View key={r.key} style={s.stat}>
-                  <Text style={[s.eyebrow, { color: c.mist }]}>{r.label}</Text>
+                  <Text style={[s.eyebrow, { color: c.mist }]}>{upper(r.label)}</Text>
                   <Text style={s.statValue}>
                     {r.metric}
                     {r.imperial ? <Text style={{ fontFamily: "Manrope", fontSize: 6, color: c.mist }}>{`  ${r.imperial}`}</Text> : null}
@@ -153,7 +160,7 @@ export function CompCardDocument({ data }: { data: CompCardData }) {
           <View style={s.footer}>
             <Wordmark />
             <View style={{ alignItems: "flex-end" }}>
-              <Text style={[s.eyebrow, { color: c.champagne }]}>{data.motherAgency}</Text>
+              <Text style={[s.eyebrow, { color: c.champagne }]}>{upper(data.motherAgency)}</Text>
               <Text style={{ marginTop: 4, fontSize: 7, color: c.mist }}>{data.url}</Text>
             </View>
           </View>

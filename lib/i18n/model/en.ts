@@ -29,6 +29,15 @@ const en = {
     empty: "The board is being updated.",
     metaDescription: "The STATUS INTERNATIONAL board: models and new faces of the mother agency with measurements, portfolios and comp cards.",
   },
+  // Цвета хранятся в базе по-английски (model_measurements.hair_color / eye_color), ключ — в нижнем регистре.
+  hairColors: {
+    black: "Black", "dark brown": "Dark brown", brown: "Brown", "light brown": "Light brown", auburn: "Auburn", red: "Red",
+    "dark blonde": "Dark blonde", blonde: "Blonde", "light blonde": "Light blonde", grey: "Grey",
+  } as Record<string, string>,
+  eyeColors: {
+    brown: "Brown", "dark brown": "Dark brown", hazel: "Hazel", green: "Green", "grey-green": "Grey-green", blue: "Blue",
+    "grey-blue": "Grey-blue", "blue-green": "Blue-green", grey: "Grey", black: "Black",
+  } as Record<string, string>,
   categories: { women: "Women", men: "Men", new_faces: "New faces", other: "Talent" },
 };
 
