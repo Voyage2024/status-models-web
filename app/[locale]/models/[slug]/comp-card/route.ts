@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 
 /**
  * GET /{locale}/models/{slug}/comp-card → PDF A5, две страницы (лицо и оборот).
- * Собирается на лету; CDN Vercel держит его час, ETag по data_hash отдаёт 304 браузеру.
+ * Собирается на лету; CDN Vercel держит его 5 минут, ETag по data_hash отдаёт 304 браузеру.
  */
 export async function GET(req: Request, { params }: { params: Promise<{ locale: string; slug: string }> }) {
   const { locale, slug } = await params;
@@ -23,7 +23,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ locale: 
     "Content-Type": "application/pdf",
     "Content-Disposition": `attachment; filename="${slug}-comp-card-${locale}.pdf"`,
     "Cache-Control": "public, max-age=0, must-revalidate",
-    "CDN-Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+    // 5 минут, как ISR страницы: правка в админке доходит до PDF так же быстро.
+    "CDN-Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600",
     ETag: etag,
   };
   if (req.headers.get("if-none-match") === etag) return new Response(null, { status: 304, headers });

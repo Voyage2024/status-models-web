@@ -12,9 +12,16 @@ import { getModelDictionary } from "@/lib/i18n/model";
 import { alternates, href } from "@/lib/i18n/paths";
 import { siteUrl } from "@/lib/site-url";
 
+/** Кегль имени от самого длинного слова: «Kira» крупно, «Герасимова» мельче, чтобы не вылезать из колонки. */
+function nameFontSize(name: string) {
+  const longest = Math.max(...name.split(" ").map((w) => w.length));
+  return `clamp(2.75rem, ${Math.min(8, 52 / longest).toFixed(2)}vw, 8.5rem)`;
+}
+
 type Params = Promise<{ locale: string; slug: string }>;
 
-// ISR: новые модели рендерятся по первому запросу, правки из админки видны через 5 минут.
+// ISR: slug, которых не было при сборке, рендерятся по первому запросу (dynamicParams).
+// Админка сбрасывает кэш через revalidatePath (lib/admin/actions.ts), без неё правки видны через 5 минут.
 export const revalidate = 300;
 export const dynamicParams = true;
 
@@ -95,7 +102,7 @@ export default async function ModelPage({ params }: { params: Params }) {
               {model.isNewFace && <span className="text-champagne">· {t.newFace}</span>}
             </p>
 
-            <h1 id="model-name" className="display mt-8 text-[clamp(3.5rem,8vw,8.5rem)] uppercase">
+            <h1 id="model-name" className="display mt-8 uppercase" style={{ fontSize: nameFontSize(model.name) }}>
               {first}
               {rest.length > 0 && (
                 <>

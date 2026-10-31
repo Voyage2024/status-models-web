@@ -24,7 +24,9 @@ const manrope = Manrope({
   display: "swap",
 });
 
-export const dynamicParams = false;
+// dynamicParams = false здесь нельзя: Next.js наследует его всем дочерним сегментам,
+// и страницы новых моделей (/[locale]/models/[slug]) отдавали 404 до пересборки.
+// Неизвестный язык и так не пройдёт: middleware уводит его на /en, а layout ниже отдаёт notFound().
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));

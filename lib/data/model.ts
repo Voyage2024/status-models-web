@@ -87,7 +87,7 @@ const num = (v: unknown) => (v == null ? null : Number(v));
  * в одном запросе ходили в базу один раз. null → 404.
  */
 export const getModelProfile = cache(async (slug: string, locale: Locale): Promise<ModelProfile | null> => {
-  if (!hasSupabase()) return fallbackProfile(slug);
+  if (!hasSupabase()) return fallbackProfile(slug, locale);
 
   const supabase = createPublicClient();
   const { data, error } = await supabase
@@ -104,19 +104,19 @@ export const getModelProfile = cache(async (slug: string, locale: Locale): Promi
 
   if (error) {
     console.error("getModelProfile", error.message);
-    return fallbackProfile(slug);
+    return fallbackProfile(slug, locale);
   }
   if (!data) return null;
   const row = data as unknown as Row;
 
   const { data: m } = await supabase.from("model_current_measurements").select("*").eq("model_id", row.id).maybeSingle();
 
-  // Непроверенный машинный перевод не показываем: берём язык страницы, только если is_reviewed, иначе en.
-  const tr =
-    row.model_translations?.find((t) => t.locale === locale && t.is_reviewed) ??
-    row.model_translations?.find((t) => t.locale === "en") ??
-    row.model_translations?.[0];
-  const name = tr?.display_name ?? [row.first_name, row.last_name].filter(Boolean).join(" ");
+  // Имя берём с языка страницы всегда (его вводят руками), а био и SEO — только если перевод
+  // отмечен is_reviewed: непроверенный машинный текст не публикуем, вместо него английский.
+  const own = row.model_translations?.find((t) => t.locale === locale);
+  const en = row.model_translations?.find((t) => t.locale === "en");
+  const tr = (own?.is_reviewed ? own : null) ?? en ?? own ?? row.model_translations?.[0];
+  const name = own?.display_name || en?.display_name || [row.first_name, row.last_name].filter(Boolean).join(" ");
 
   const media = [...(row.model_media ?? [])]
     .filter((x): x is typeof x & { kind: MediaKind } => x.kind !== "video")
@@ -197,7 +197,7 @@ export function compCardPhotos(p: ModelProfile, count = 4): ModelMedia[] {
  * Обложка — фото kind = cover, иначе первое по sort_order.
  */
 export async function getBoard(locale: Locale): Promise<TalentCard[]> {
-  if (!hasSupabase()) return fallbackBoard();
+  if (!hasSupabase()) return fallbackBoard(locale);
 
   const supabase = createPublicClient();
   const { data, error } = await supabase
@@ -211,7 +211,7 @@ export async function getBoard(locale: Locale): Promise<TalentCard[]> {
 
   if (error) {
     console.error("getBoard", error.message);
-    return fallbackBoard();
+    return fallbackBoard(locale);
   }
   type BoardRow = Pick<Row, "id" | "slug" | "first_name" | "last_name" | "category" | "is_new_face" | "model_translations" | "model_media">;
   const rows = (data ?? []) as unknown as BoardRow[];
@@ -225,10 +225,10 @@ export async function getBoard(locale: Locale): Promise<TalentCard[]> {
 
   return rows
     .map((r) => {
-      const tr =
-        r.model_translations?.find((t) => t.locale === locale && t.is_reviewed) ??
-        r.model_translations?.find((t) => t.locale === "en");
-      const name = tr?.display_name ?? [r.first_name, r.last_name].filter(Boolean).join(" ");
+      const name =
+        r.model_translations?.find((t) => t.locale === locale)?.display_name ||
+        r.model_translations?.find((t) => t.locale === "en")?.display_name ||
+        [r.first_name, r.last_name].filter(Boolean).join(" ");
       const photos = (r.model_media ?? []).filter((x) => x.kind !== "video");
       const media =
         photos.filter((x) => x.kind === "cover").sort((a, b) => a.sort_order - b.sort_order)[0] ??
@@ -252,9 +252,9 @@ export async function getBoard(locale: Locale): Promise<TalentCard[]> {
     .sort((a, b) => a.name.localeCompare(b.name, locale));
 }
 
-function fallbackBoard(): TalentCard[] {
+function fallbackBoard(locale: Locale): TalentCard[] {
   return fallbackSlugs
-    .map((slug) => fallbackProfile(slug)!)
+    .map((slug) => fallbackProfile(slug, locale)!)
     .map((p) => ({
       slug: p.slug,
       name: p.name,
@@ -263,5 +263,5 @@ function fallbackBoard(): TalentCard[] {
       heightCm: p.measurements?.heightCm ?? null,
       cover: coverOf(p),
     }))
-    .sort((a, b) => a.name.localeCompare(b.name, "en"));
+    .sort((a, b) => a.name.localeCompare(b.name, locale));
 }
